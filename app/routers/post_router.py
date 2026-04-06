@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..models import User
 from ..schemas import PostCreate, PostResponse, PostSummary, CommentResponse
 from ..repositories import PostRepository
 from ..services import PostService
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 
@@ -48,7 +50,12 @@ def get_post(post_id: str, service: PostService = Depends(get_post_service)):
 
 
 @router.post("", response_model=PostResponse, status_code=201)
-def create_post(data: PostCreate, service: PostService = Depends(get_post_service)):
+def create_post(
+    data: PostCreate,
+    service: PostService = Depends(get_post_service),
+    current_user: User = Depends(get_current_user),
+):
+    data.author = current_user.username
     post = service.create_post(data)
     return PostResponse(
         id=post.id,
@@ -62,7 +69,15 @@ def create_post(data: PostCreate, service: PostService = Depends(get_post_servic
 
 
 @router.delete("/{post_id}")
-def delete_post(post_id: str, service: PostService = Depends(get_post_service)):
+def delete_post(
+    post_id: str,
+    service: PostService = Depends(get_post_service),
+    current_user: User = Depends(get_current_user),
+):
+    post = service.get_post(post_id)
+    if post.author != current_user.username:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="본인이 작성한 게시글만 삭제할 수 있습니다.")
     service.delete_post(post_id)
     return {"message": "게시글이 삭제되었습니다."}
 

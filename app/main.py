@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .database import engine, Base
-from .routers import post_router, comment_router
+from .routers import post_router, comment_router, auth_router
 from .seed import seed_initial_data
 
 Base.metadata.create_all(bind=engine)
@@ -25,6 +25,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(status_code=exc.status_code, content={"error": str(exc.detail)})
 
 
+app.include_router(auth_router)
 app.include_router(post_router)
 app.include_router(comment_router)
 
