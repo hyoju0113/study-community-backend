@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .database import engine, Base
-from .routers import post_router, comment_router, auth_router, rooms_router, reservations_router
+from .routers import post_router, comment_router, auth_router, rooms_router, reservations_router, admin_router
 from .seed import seed_initial_data
 
 Base.metadata.create_all(bind=engine)
@@ -30,6 +30,7 @@ app.include_router(post_router)
 app.include_router(comment_router)
 app.include_router(rooms_router, prefix="/api")
 app.include_router(reservations_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
 
 
 @app.on_event("startup")

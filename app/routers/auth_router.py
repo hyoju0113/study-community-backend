@@ -20,7 +20,7 @@ def register(data: UserRegister, service: AuthService = Depends(get_auth_service
     user, token = service.register(data)
     return TokenResponse(
         access_token=token,
-        user=UserResponse(id=user.id, username=user.username, email=user.email, createdAt=user.created_at),
+        user=UserResponse(id=user.id, username=user.username, email=user.email, role=user.role or "user", createdAt=user.created_at),
     )
 
 
@@ -29,7 +29,7 @@ def login(data: UserLogin, service: AuthService = Depends(get_auth_service)):
     user, token = service.login(data)
     return TokenResponse(
         access_token=token,
-        user=UserResponse(id=user.id, username=user.username, email=user.email, createdAt=user.created_at),
+        user=UserResponse(id=user.id, username=user.username, email=user.email, role=user.role or "user", createdAt=user.created_at),
     )
 
 
@@ -39,5 +39,6 @@ def get_me(current_user: User = Depends(get_current_user)):
         id=current_user.id,
         username=current_user.username,
         email=current_user.email,
+        role=current_user.role or "user",
         createdAt=current_user.created_at,
     )

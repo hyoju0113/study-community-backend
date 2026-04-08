@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 
 from .database import SessionLocal
-from .models import Post, Comment, Room
+from .models import Post, Comment, Room, User
+from .auth import hash_password
 
 
 def seed_initial_data():
@@ -83,6 +84,7 @@ def seed_initial_data():
         db.commit()
 
         seed_rooms(db)
+        seed_admin_user(db)
     finally:
         db.close()
 
@@ -112,6 +114,52 @@ def seed_rooms(db):
             description="20인용 대회의실",
             amenities=["프로젝터", "마이크", "스피커", "Wi-Fi"],
         ),
+        Room(
+            id="room_5", name="스터디룸 D", location="3층 303호", capacity=2,
+            description="2인용 미니 스터디룸",
+            amenities=["모니터", "Wi-Fi"],
+        ),
+        Room(
+            id="room_6", name="스터디룸 E", location="4층 402호", capacity=10,
+            description="10인용 세미나룸",
+            amenities=["화이트보드", "프로젝터", "모니터", "Wi-Fi"],
+        ),
+        Room(
+            id="room_7", name="미디어룸", location="4층 403호", capacity=6,
+            description="영상 시청 및 발표 연습용",
+            amenities=["프로젝터", "스피커", "마이크", "Wi-Fi"],
+        ),
+        Room(
+            id="room_8", name="스터디룸 F", location="5층 502호", capacity=4,
+            description="4인용 스터디룸 (창가석)",
+            amenities=["화이트보드", "Wi-Fi"],
+        ),
+        Room(
+            id="room_9", name="그룹 토론실", location="5층 503호", capacity=12,
+            description="12인용 원형 토론실",
+            amenities=["화이트보드", "모니터", "마이크", "Wi-Fi"],
+        ),
+        Room(
+            id="room_10", name="오픈 스페이스", location="6층 601호", capacity=30,
+            description="30인용 오픈형 공유 공간",
+            amenities=["프로젝터", "마이크", "스피커", "화이트보드", "Wi-Fi"],
+        ),
     ]
     db.add_all(rooms)
+    db.commit()
+
+
+def seed_admin_user(db):
+    admin = db.query(User).filter(User.role == "admin").first()
+    if admin:
+        return
+
+    admin_user = User(
+        id=f"user_{int(datetime.now(timezone.utc).timestamp() * 1000)}",
+        username="admin",
+        email="admin@study.com",
+        hashed_password=hash_password("admin123"),
+        role="admin",
+    )
+    db.add(admin_user)
     db.commit()

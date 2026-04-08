@@ -1,17 +1,19 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models.room import Room
-from ..models.reservation import Reservation
 from ..models.user import User
+from ..repositories.room_repository import RoomRepository
+from ..repositories.reservation_repository import ReservationRepository
+from ..services.reservation_service import ReservationService
 
 router = APIRouter(prefix="/rooms", tags=["rooms"])
 
 
 @router.get("")
 def get_rooms(db: Session = Depends(get_db)):
-    rooms = db.query(Room).all()
+    room_repo = RoomRepository(db)
+    rooms = room_repo.find_all()
     return [
         {
             "id": r.id,
@@ -27,9 +29,9 @@ def get_rooms(db: Session = Depends(get_db)):
 
 @router.get("/{room_id}")
 def get_room(room_id: str, db: Session = Depends(get_db)):
-    room = db.query(Room).filter(Room.id == room_id).first()
-    if not room:
-        raise HTTPException(status_code=404, detail={"error": "스터디룸을 찾을 수 없습니다."})
+    from ..services.room_service import RoomService
+    service = RoomService(RoomRepository(db))
+    room = service.get_room(room_id)
     return {
         "id": room.id,
         "name": room.name,
@@ -46,16 +48,10 @@ def get_room_reservations(
     date: str = Query(..., description="조회할 날짜 (YYYY-MM-DD)"),
     db: Session = Depends(get_db),
 ):
-    room = db.query(Room).filter(Room.id == room_id).first()
-    if not room:
-        raise HTTPException(status_code=404, detail={"error": "스터디룸을 찾을 수 없습니다."})
-
-    reservations = (
-        db.query(Reservation)
-        .filter(Reservation.room_id == room_id, Reservation.date == date)
-        .order_by(Reservation.start_time)
-        .all()
-    )
+    room_repo = RoomRepository(db)
+    reservation_repo = ReservationRepository(db)
+    service = ReservationService(reservation_repo, room_repo)
+    reservations = service.get_room_reservations(room_id, date)
 
     result = []
     for r in reservations:
