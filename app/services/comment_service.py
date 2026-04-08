@@ -18,7 +18,7 @@ class CommentService:
             raise HTTPException(status_code=404, detail={"error": "게시글을 찾을 수 없습니다."})
         return post.comments
 
-    def create_comment(self, post_id: str, data: CommentCreate) -> Comment:
+    def create_comment(self, post_id: str, data: CommentCreate, author: str) -> Comment:
         post = self.post_repo.find_by_id(post_id)
         if not post:
             raise HTTPException(status_code=404, detail={"error": "게시글을 찾을 수 없습니다."})
@@ -27,7 +27,7 @@ class CommentService:
         comment = Comment(
             id=str(int(datetime.now(timezone.utc).timestamp() * 1000)),
             content=data.content,
-            author=data.author,
+            author=author,
             post_id=post_id,
         )
         return self.comment_repo.save(comment)
