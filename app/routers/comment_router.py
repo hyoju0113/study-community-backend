@@ -39,8 +39,7 @@ def create_comment(
     service: CommentService = Depends(get_comment_service),
     current_user: User = Depends(get_current_user),
 ):
-    data.author = current_user.username
-    comment = service.create_comment(post_id, data)
+    comment = service.create_comment(post_id, data, author=current_user.username)
     return CommentResponse(
         id=comment.id,
         content=comment.content,

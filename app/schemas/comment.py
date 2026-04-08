@@ -4,7 +4,6 @@ from datetime import datetime
 
 class CommentCreate(BaseModel):
     content: str
-    author: str
 
 
 class CommentResponse(BaseModel):
